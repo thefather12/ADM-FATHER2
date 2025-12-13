@@ -281,7 +281,7 @@ apt-get install pv -y &> /dev/null
 [[ $(dpkg --get-selections|grep -w "pv"|head -1) ]] || apt-get install pv -y &>/dev/null
 apt-get install pv -y -qq --silent > /dev/null 2>&1
 os_system
-MI=$(wget -qO- ifconfig.me)
+MI=$(curl -s ifconfig.me/ip)
 echo "$distro $vercion" >/tmp/distro
 echo -e "\e[1;31m	🖥SISTEMA: \e[33m$distro $vercion   "
 echo -e "\e[1;31m	🖥IP: \e[33m$MI   "
