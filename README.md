@@ -51,7 +51,7 @@ BOT MANAGER:
 # Instalación
 ```
 
-apt-get update -y; apt-get upgrade -y; wget https://github.com/thefather12/ADM-FATHER2/raw/main/LACASITA.sh; chmod 777 LACASITA.sh; ./LACASIAT.sh --start
+apt-get update -y; apt-get upgrade -y; wget https://github.com/thefather12/ADM-FATHER2/raw/main/LACASITA.sh; chmod 777 LACASITA.sh; ./LACASITA.sh --start
 ```
 
  
