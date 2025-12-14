@@ -179,7 +179,7 @@ install_core_lacasita() {
 
     rm -rf /usr/local/lib/systemubu1 &>/dev/null
     rm -rf /etc/versin_script &>/dev/null
-    v1=$(curl -sSL "https://raw.githubusercontent.com/eze1087/Multi/main/LACASITAMX-v9x/Otros/Version")
+    v1=$(curl -sSL "https://raw.githubusercontent.com/thefather12/ADM-FATHER2/main/Otros/Version")
     echo "$v1" >/etc/versin_script
     
     echo '#!/bin/sh -e' >/etc/rc.local
@@ -281,7 +281,7 @@ apt-get install pv -y &> /dev/null
 [[ $(dpkg --get-selections|grep -w "pv"|head -1) ]] || apt-get install pv -y &>/dev/null
 apt-get install pv -y -qq --silent > /dev/null 2>&1
 os_system
-MI=$(curl -s icanhazip.com)
+MI=$(curl -s ifconfig.me/ip)
 echo "$distro $vercion" >/tmp/distro
 echo -e "\e[1;31m	🖥SISTEMA: \e[33m$distro $vercion   "
 echo -e "\e[1;31m	🖥IP: \e[33m$MI   "
