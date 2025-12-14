@@ -102,7 +102,7 @@ SEMCOR='\e[0m'
 Key="$(cat /etc/VPS-MX/key.txt)"
 ADM=$(sed -n '1 p' /usr/bin/venip |cut -d' ' -f1)
 #ADM=$(ofus "$Key" | grep -vE '127\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}' | grep -o -E '[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}') && echo "$ADM" > /usr/bin/venip
-  IP2="$(curl -s ifconfig.me/ip)"
+MIIP=$(curl -s ipinfo.io/ip)
   permited=$(curl -sSL "http://$ADM:81/checkip")
   [[ $(echo $permited|grep "$IP2") = "" ]] && {
   clear && clear
