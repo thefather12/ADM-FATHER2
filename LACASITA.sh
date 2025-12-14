@@ -62,6 +62,7 @@ funbar() {
 dependencias() {
   dpkg --configure -a >/dev/null 2>&1
   apt -f install -y >/dev/null 2>&1
+  # Dependencias corregidas: 'screen' incluido
   soft="sudo grep less zip unzip ufw curl dos2unix python python3 python3-pip openssl cron iptables lsof pv boxes at mlocate gawk bc jq curl socat netcat net-tools cowsay figlet lolcat apache2 screen"
   for i in $soft; do
     paquete="$i"
@@ -71,7 +72,7 @@ dependencias() {
   done
 }
 
-# --- FUNCIÓN DE INSTALACIÓN PRINCIPAL (REEMPLAZA EL FLUJO DE LA KEY) ---
+# --- FUNCIÓN DE INSTALACIÓN PRINCIPAL CORREGIDA (INCLUYE PARCHES Y ENLACES ROBUSTOS) ---
 install_core_lacasita() {
     clear && clear
     msg -bar2
@@ -87,8 +88,9 @@ install_core_lacasita() {
     # Directorio de instalación principal
     mkdir /etc/VPS-MX >/dev/null 2>&1
     cd /etc
-
-    # Descarga directa del paquete principal (tomada del script install.sh anterior)
+    SCPdir="/etc/VPS-MX" # Definimos SCPdir aquí para usarlo en el parche
+    
+    # Descarga directa del paquete principal
     wget -O VPS-MX.tar.gz "https://raw.githubusercontent.com/thefather12/ADM-FATHER2/main/VPS-MX.tar.gz" >/dev/null 2>&1
     
     if [ $? -ne 0 ]; then
@@ -97,13 +99,43 @@ install_core_lacasita() {
     fi
 
     tar -xf VPS-MX.tar.gz >/dev/null 2>&1
-    chmod +x VPS-MX.tar.gz >/dev/null 2>&1
     rm -rf VPS-MX.tar.gz
     cd
     chmod -R 755 /etc/VPS-MX
-    rm -rf /etc/VPS-MX/MEUIPvps
-    echo "/etc/VPS-MX/menu" >/usr/bin/menu && chmod +x /usr/bin/menu
-    echo "/etc/VPS-MX/menu" >/usr/bin/VPSMX && chmod +x /usr/bin/VPSMX
+    
+    # Asegura la IP limpia para referencia
+    MI=$(curl -s ipinfo.io/ip) # Obtiene la IP limpia
+    echo "$MI" > ${SCPdir}/MEUIPvps # Crea o limpia el archivo de IP
+
+    # ==========================================================
+    # INICIO DEL PARCHE AUTOMÁTICO PARA SOLUCIONAR ERRORES DE IP
+    # ==========================================================
+
+    # 1. Parchea la función user_activos (verificación interna)
+    sed -i 's|MIIP=$(wget -qO- ifconfig.me)|MIIP=$(curl -s ipinfo.io/ip)|g' /etc/VPS-MX/menu
+    
+    # 2. Parchea la línea del banner (encabezado del menú, el que causa el error HTML)
+    sed -i 's|IP:\e\[1;97m \$(cat \${SCPdir}/MEUIPvps)|IP:\e\[1;97m \$(curl -s ipinfo.io/ip)|g' /etc/VPS-MX/menu
+
+    # 3. Parchea cualquier otra referencia con la forma antigua
+    sed -i 's|MIIP=\$(wget -qO- ifconfig.me)|MIIP=\$(curl -s ipinfo.io/ip)|g' /etc/VPS-MX/menu
+
+    # ==========================================================
+    # FIN DEL PARCHE
+    # ==========================================================
+
+    # CREACIÓN DE ACCESOS DIRECTOS SEGUROS (ln -sf)
+    
+    # Eliminamos los accesos directos inseguros anteriores
+    [[ -e /usr/bin/menu ]] && rm -rf /usr/bin/menu
+    [[ -e /usr/bin/VPSMX ]] && rm -rf /usr/bin/VPSMX
+    
+    # Creamos los enlaces simbólicos de forma robusta
+    ln -sf /etc/VPS-MX/menu /usr/bin/menu
+    ln -sf /etc/VPS-MX/menu /usr/bin/VPSMX
+    chmod +x /usr/bin/menu
+    chmod +x /usr/bin/VPSMX
+
     echo "$slogan" >/etc/VPS-MX/message.txt
 
     # Creación de directorios para UNLOKERS (mantenidos del script original)
@@ -127,9 +159,6 @@ install_core_lacasita() {
     cd /etc/VPS-MX/herramientas
     
     # Descarga del paquete speedtest (manteniendo la misma URL anterior si existe)
-    # NOTA: En el script anterior descargaba 'speedtest_v1.tar' de otro lado. 
-    # Aquí asumimos que el paquete principal ya trae todo o la URL de speedtest_v1.tar es la misma que la del VPS-MX.tar.gz.
-    # Si la instalación falla después de esto, deberá verificar la fuente de 'speedtest_v1.tar'
     wget https://raw.githubusercontent.com/eze1087/Multi/main/LACASITAMX-v9x/VPS-MX.tar.gz >/dev/null 2>&1 # Usando la misma URL por simplicidad.
     tar -xf speedtest_v1.tar >/dev/null 2>&1
     rm -rf speedtest_v1.tar >/dev/null 2>&1
@@ -137,9 +166,6 @@ install_core_lacasita() {
     cd
 
     # Instalación de herramientas auxiliares y configuraciones (manteniendo las URLs originales del script con Key)
-    # NOTA: He reemplazado las URLs de Dropbox por las de GitHub o fuentes abiertas que se mencionaban si era posible,
-    # y he mantenido las URLs que usaban el repositorio 'lacasitamx' que parece ser la fuente original.
-
     [[ ! -d /etc/VPS-MX/v2ray ]] && mkdir /etc/VPS-MX/v2ray
     [[ ! -d /etc/VPS-MX/Slow ]] && mkdir /etc/VPS-MX/Slow
     [[ ! -d /etc/VPS-MX/Slow/install ]] && mkdir /etc/VPS-MX/Slow/install
@@ -148,7 +174,7 @@ install_core_lacasita() {
 
     # Se mantiene la descarga de utilidades clave
     wget -O /usr/bin/trans https://raw.githubusercontent.com/scriptsmx/script/master/Install/trans &> /dev/null
-    wget -O /bin/Desbloqueo.sh https://raw.githubusercontent.com/lacasitamx/VPSMX/master/SCRIPT-8.4/Utilidad/desbloqueo.sh &> /dev/null # Fuente ajustada a GitHub
+    wget -O /bin/Desbloqueo.sh https://raw.githubusercontent.com/lacasitamx/VPSMX/master/SCRIPT-8.4/Utilidad/desbloqueo.sh &> /dev/null
     chmod +x /bin/Desbloqueo.sh
     wget -O /bin/monitor.sh https://raw.githubusercontent.com/lacasitamx/VPSMX/master/SCRIPT-8.4/Utilidad/monitor.sh &> /dev/null
     chmod +x /bin/monitor.sh
@@ -174,9 +200,6 @@ install_core_lacasita() {
     grep -v "^PasswordAuthentication" /etc/ssh/sshd_config >/tmp/passlogin && mv /tmp/passlogin /etc/ssh/sshd_config
     echo "PasswordAuthentication yes" >>/etc/ssh/sshd_config
     
-    # Se eliminó la verificación y descarga de la Key.
-    # Se eliminó la notificación a Telegram.
-
     rm -rf /usr/local/lib/systemubu1 &>/dev/null
     rm -rf /etc/versin_script &>/dev/null
     v1=$(curl -sSL "https://raw.githubusercontent.com/thefather12/ADM-FATHER2/main/Otros/Version")
