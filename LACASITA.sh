@@ -62,7 +62,7 @@ funbar() {
 dependencias() {
   dpkg --configure -a >/dev/null 2>&1
   apt -f install -y >/dev/null 2>&1
-  soft="sudo grep less zip unzip ufw curl dos2unix python python3 python3-pip openssl cron iptables lsof pv boxes at mlocate gawk bc jq curl socat netcat net-tools cowsay figlet lolcat apache2"
+  soft="sudo grep less zip unzip ufw curl dos2unix python python3 python3-pip openssl cron iptables lsof pv boxes at mlocate gawk bc jq curl socat netcat net-tools cowsay figlet lolcat apache2 screen"
   for i in $soft; do
     paquete="$i"
     echo -e "\033[93m    ❯ \e[97mINSTALANDO PAQUETE \e[36m $i"
@@ -89,7 +89,7 @@ install_core_lacasita() {
     cd /etc
 
     # Descarga directa del paquete principal (tomada del script install.sh anterior)
-    wget -O VPS-MX.tar.gz "https://raw.githubusercontent.com/eze1087/Multi/main/LACASITAMX-v9x/VPS-MX.tar.gz" >/dev/null 2>&1
+    wget -O VPS-MX.tar.gz "https://raw.githubusercontent.com/thefather12/ADM-FATHER2/main/VPS-MX.tar.gz" >/dev/null 2>&1
     
     if [ $? -ne 0 ]; then
         msg -verm "ERROR: No se pudo descargar el paquete principal (VPS-MX.tar.gz)"
@@ -281,7 +281,7 @@ apt-get install pv -y &> /dev/null
 [[ $(dpkg --get-selections|grep -w "pv"|head -1) ]] || apt-get install pv -y &>/dev/null
 apt-get install pv -y -qq --silent > /dev/null 2>&1
 os_system
-MI=$(curl -s ifconfig.me/ip)
+MI=$(curl -s ipinfo.io/ip)
 echo "$distro $vercion" >/tmp/distro
 echo -e "\e[1;31m	🖥SISTEMA: \e[33m$distro $vercion   "
 echo -e "\e[1;31m	🖥IP: \e[33m$MI   "
