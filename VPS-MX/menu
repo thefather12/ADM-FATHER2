@@ -444,7 +444,7 @@ mb=$(printf '%-8s' "$(free -h | grep Mem | sed 's/\s\+/,/g' | cut -d , -f6)")
 _hora=$(printf '%(%H:%M:%S)T')
 _hoje=$(date +'%d/%m/%Y')
 
-echo -e "\033[1;37m OS \033[1;31m: \033[1;32m$_system \033[1;37mHORA\033[1;31m: \033[1;32m$_hora  \033[1;37mIP\033[1;31m:\033[1;32m $(meu_ip)"
+echo -e "\e[1;32m       OS :\e[1;97m $(cat /etc/issue | cut -d ' ' -f1,6,7 | sed 's/\\n//' | sed 's/\\l//')\e[1;31m  HORA:\e[1;97m $(printf '%(%H:%M:%S)T') \e[1;31m IP:\e[1;97m $(curl -s ipinfo.io/ip)"
 echo -e "\033[1;37m RAM\e[31m: \033[1;32m$_ram \033[1;37mUSADO\033[1;31m: \033[1;32m$mb\033[1;37m LIBRE\033[1;31m: \033[1;32m$_ram2"
 
 }
