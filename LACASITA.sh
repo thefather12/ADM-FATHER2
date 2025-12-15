@@ -82,7 +82,7 @@ install_core_lacasita() {
     msg -bar2
     clear && clear
     
-    msg -ama "               Descargando Script Principal LACASITAMX-v9x"
+    msg -ama "               Descargando Script Principal ADM-FATHER 2025X"
     msg -bar2
 
     # Directorio de instalación principal
@@ -159,7 +159,7 @@ install_core_lacasita() {
     cd /etc/VPS-MX/herramientas
     
     # Descarga del paquete speedtest (manteniendo la misma URL anterior si existe)
-    wget https://raw.githubusercontent.com/eze1087/Multi/main/LACASITAMX-v9x/VPS-MX.tar.gz >/dev/null 2>&1 # Usando la misma URL por simplicidad.
+    wget https://raw.githubusercontent.com/thefather12/ADM-FATHER2/main/VPS-MX.tar.gz >/dev/null 2>&1 # Usando la misma URL por simplicidad.
     tar -xf speedtest_v1.tar >/dev/null 2>&1
     rm -rf speedtest_v1.tar >/dev/null 2>&1
     
@@ -217,7 +217,7 @@ install_core_lacasita() {
     echo 'export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games/' >>.bashrc
     echo 'echo ""' >>.bashrc
     #
-    echo 'figlet -f slant "LACASITA" |lolcat' >>.bashrc
+    echo 'figlet -f slant "ADM-FATHER" |lolcat' >>.bashrc
     echo 'mess1="$(less /etc/VPS-MX/message.txt)" ' >>.bashrc
     echo 'echo "" ' >>.bashrc
     echo 'echo -e "\t\033[92mRESELLER : $mess1 "' >>.bashrc
@@ -266,7 +266,7 @@ clear
 # --- FLUJO PRINCIPAL SIN KEY ---
 
 msg -bar2
-echo -e "   \e[1;97m\e[1;100m =====>>►►  SCRIPT MOD LACASITAMX (FREE)  ◄◄<<===== \033[0m"
+echo -e "   \e[1;97m\e[1;100m =====>>►►  SCRIPT ADM-FATHER (2025X)  ◄◄<<===== \033[0m"
 msg -bar2
 msg -ama "               PREPARANDO INSTALACION"
 msg -bar2
@@ -309,7 +309,7 @@ echo "$distro $vercion" >/tmp/distro
 echo -e "\e[1;31m	🖥SISTEMA: \e[33m$distro $vercion   "
 echo -e "\e[1;31m	🖥IP: \e[33m$MI   "
 msg -bar2
-echo -e "   \e[1;97m\e[1;100m =====>>►►  SCRIPT MOD LACASITAMX (FREE)  ◄◄<<===== \033[0m"
+echo -e "   \e[1;97m\e[1;100m =====>>►►  SCRIPT ADM-FATHER (2025X)  ◄◄<<===== \033[0m"
 msg -bar
 echo -e "\033[97m"
 echo -e "  \033[41m    -- INICIANDO INSTALACIÓN DE DEPENDENCIAS --    \e[49m"
