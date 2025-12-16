@@ -170,15 +170,15 @@ apt-get install dnsutils -y
 apt-get install openssh-server -y
 apt-get install cdbs -y
 apt-get install libpam-cracklib -y
-apt-get install lolcat -y
-apt-get install at -y
-apt-get install make -y
-apt-get install gcc -y
-apt-get install libncurses5-dev -y
-apt-get install cmake -y
-apt-get install libssl-dev -y
-apt-get install zlib1g-dev -y
-apt-get install libpcre3-dev -y
+    apt-get install lolcat -y
+    apt-get install at -y
+    apt-get install make -y
+    apt-get install gcc -y
+    apt-get install libncurses5-dev -y
+    apt-get install cmake -y
+    apt-get install libssl-dev -y
+    apt-get install zlib1g-dev -y
+    apt-get install libpcre3-dev -y
     apt-get install libexpat1-dev -y
     apt-get install libxml-parser-perl -y
     apt-get install libxml2-dev -y
@@ -220,24 +220,38 @@ install_core_lacasita() {
     
     msg -azu "Clonando archivos desde el repositorio Git: ${URL_REPO_GIT}"
     
-    # 3. Clonar o Actualizar
+    # 3. Clonar o Actualizar (BLOQUE CORREGIDO y ROBUSTO)
     cd ${SCPdir}
+    
     if [ -d "${SCPdir}/.git" ]; then
         # Si ya existe, intentar solo actualizar (pull)
+        msg -azu "Intentando actualizar el repositorio existente..."
         git reset --hard >/dev/null 2>&1
         git pull $URL_REPO_GIT >/dev/null 2>&1
-        msg -verde "Archivos actualizados con Git."
+        if [ $? -eq 0 ]; then
+             msg -verde "Archivos actualizados con Git."
+        else
+             msg -verm "ADVERTENCIA: Falló la actualización (git pull). Revise la conexión."
+        fi
     else
         # Si no existe, clonar por primera vez
-        git clone $URL_REPO_GIT /tmp/git_temp_clone >/dev/null 2>&1
-        if [ $? -eq 0 ]; then
-            # Clonación exitosa, movemos todo a la carpeta principal
-            mv /tmp/git_temp_clone/* ${SCPdir}
-            mv /tmp/git_temp_clone/.git ${SCPdir}
+        if [ -d "/tmp/git_temp_clone" ]; then rm -rf /tmp/git_temp_clone; fi # Limpieza
+        
+        git clone $URL_REPO_GIT /tmp/git_temp_clone &>/dev/null
+        
+        if [ $? -eq 0 ] && [ -d "/tmp/git_temp_clone" ]; then
+            # Clonación exitosa, movemos el contenido usando rsync para mayor seguridad
+            # rsync -a copia el contenido y permisos, evitando el error de mv
+            rsync -a /tmp/git_temp_clone/ ${SCPdir}/
+            
+            # Luego movemos la carpeta .git para que quede en SCPdir
+            mv /tmp/git_temp_clone/.git ${SCPdir}/
+            
             rm -rf /tmp/git_temp_clone
             msg -verde "Archivos clonados con Git en ${SCPdir}."
         else
-            msg -verm "ERROR: No se pudo clonar el repositorio Git."
+            msg -verm "ERROR FATAL: No se pudo clonar el repositorio Git."
+            msg -verm "Verifique la conexión a Internet o la URL: ${URL_REPO_GIT}"
             exit 1
         fi
     fi
