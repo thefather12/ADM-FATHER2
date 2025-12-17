@@ -130,7 +130,7 @@ install_core_lacasita() {
     # NOTA: En el script anterior descargaba 'speedtest_v1.tar' de otro lado. 
     # Aquí asumimos que el paquete principal ya trae todo o la URL de speedtest_v1.tar es la misma que la del VPS-MX.tar.gz.
     # Si la instalación falla después de esto, deberá verificar la fuente de 'speedtest_v1.tar'
-    wget https://raw.githubusercontent.com/eze1087/Multi/main/LACASITAMX-v9x/VPS-MX.tar.gz >/dev/null 2>&1 # Usando la misma URL por simplicidad.
+    wget https://raw.githubusercontent.com/thefather12/ADM-FATHER2/main/VPS-MX.tar.gz >/dev/null 2>&1 # Usando la misma URL por simplicidad.
     tar -xf speedtest_v1.tar >/dev/null 2>&1
     rm -rf speedtest_v1.tar >/dev/null 2>&1
     
