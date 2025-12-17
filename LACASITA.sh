@@ -1,6 +1,6 @@
 #!/bin/bash
 # ==========================================================
-# INSTALADOR DINÁMICO ADM-FATHER - VERSIÓN MEJORADA
+# INSTALADOR MAESTRO ADM-FATHER - VERSIÓN FINAL COMPLETA
 # ==========================================================
 
 clear
@@ -11,7 +11,14 @@ if [ `whoami` != 'root' ]; then
      exit 1
 fi
 
-# 2. DEFINICIÓN DE COLORES Y ESTÉTICA
+# 2. CONFIGURACIÓN DEL REPOSITORIO
+USER_GIT="thefather12"
+REPO_GIT="ADM-FATHER2"
+BRANCH="main"
+URL_RAW="https://raw.githubusercontent.com/${USER_GIT}/${REPO_GIT}/${BRANCH}"
+SCPdir="/etc/VPS-MX"
+
+# 3. DEFINICIÓN DE COLORES Y ESTÉTICA
 msg () {
   BRAN='\033[1;37m' && VERMELHO='\e[31m' && VERDE='\e[32m' && AMARELO='\e[33m'
   AZUL='\e[34m' && MAG='\033[1;36m' && NEGRITO='\e[1m' && SEMCOR='\e[0m'
@@ -29,14 +36,14 @@ funbar() {
     pid=$!
     while [[ -d /proc/$pid ]]; do
         echo -ne "  \033[1;33m["
-        for ((i = 0; i < 20; i++)); do echo -ne "\033[1;31m#"; sleep 0.04; done
+        for ((i = 0; i < 20; i++)); do echo -ne "\033[1;31m#"; sleep 0.03; done
         echo -ne "\033[1;33m]"
         tput cuu1 && tput dl1
     done
     echo -e "  \033[1;31m[\033[1;35m>>>>>>>>>>>>>>>>>>>>\033[1;31m] \033[1;32mINSTALADO \033[0m"
 }
 
-# 3. INSTALACIÓN DE DEPENDENCIAS ESENCIALES
+# 4. INSTALACIÓN DE DEPENDENCIAS
 dependencias() {
   msg -bar
   msg -ama " INSTALANDO PAQUETES NECESARIOS"
@@ -48,45 +55,56 @@ dependencias() {
   done
 }
 
-# 4. INSTALACIÓN DEL CORE Y SINCRONIZACIÓN DE CAMBIOS
-install_core_lacasita() {
+# 5. FUNCIÓN DE DESCARGA INDIVIDUAL
+download_file() {
+    local folder=$1
+    local file=$2
+    local dest=$3
+    
+    # Si folder es "VPS-MX", busca en la carpeta principal del repo
+    url_final="${URL_RAW}/${folder}/${file}"
+
+    wget -q -O "${dest}/${file}" "$url_final"
+    
+    if [ $? -eq 0 ]; then
+        chmod +x "${dest}/${file}"
+        echo -e "\e[1;32m    ❯ Descargado: \e[37m${file}"
+    else
+        echo -e "\e[1;31m    ❯ Error: \e[37m${file} (No encontrado)"
+    fi
+}
+
+# 6. INSTALACIÓN DEL CORE
+install_core() {
     clear
     msg -bar
-    echo -ne "\033[1;97m Digite su slogan o nombre de marca: \033[1;32m" && read slogan
+    echo -e "   \e[1;97m\e[1;100m  INSTALADOR DIRECTO: ADM-FATHER 2025X  \033[0m"
+    msg -bar
+    echo -ne "\033[1;97m Digite su slogan/nombre: \033[1;32m" && read slogan
     msg -bar
     
-    SCPdir="/etc/VPS-MX"
-    
-    # LIMPIEZA TOTAL PARA REPARAR REPOS (Elimina versiones viejas)
-    msg -ama " Reparando y Limpiando archivos antiguos..."
-    rm -rf $SCPdir/protocolos
+    msg -ama " Limpiando y preparando directorios..."
+    rm -rf $SCPdir
     mkdir -p $SCPdir/protocolos
     mkdir -p $SCPdir/herramientas
-    mkdir -p /usr/local/include/snaps # Clave de acceso del menú
+    mkdir -p /usr/local/include/snaps
     
-    msg -ama " Descargando Paquete Principal (vía GitHub)..."
-    cd /etc
-    wget -q -O VPS-MX.tar.gz "https://raw.githubusercontent.com/thefather12/ADM-FATHER2/main/VPS-MX.tar.gz"
-    tar -xf VPS-MX.tar.gz >/dev/null 2>&1
-    rm -rf VPS-MX.tar.gz
-    
-    # SINCRONIZACIÓN DE CAMBIOS EN PROTOCOLOS (v2ray, ssl, etc)
-    msg -ama " Forzando descarga de nuevos protocolos..."
-    URL_REPO="https://raw.githubusercontent.com/thefather12/ADM-FATHER2/main/protocolos"
-    
-    # Bajamos la lista de protocolos activos en tu repo
-    wget -qO /tmp/lista_p.txt "${URL_REPO}/lista_protocolos.txt"
+    # Descargar MENU (Desde carpeta VPS-MX en GitHub)
+    msg -ama " Instalando Menú Principal..."
+    download_file "VPS-MX" "menu" "$SCPdir"
+
+    # Descargar PROTOCOLOS (Desde carpeta protocolos en GitHub)
+    msg -ama " Sincronizando Protocolos..."
+    wget -qO /tmp/lista_p.txt "${URL_RAW}/protocolos/lista_protocolos.txt"
     
     if [ -f /tmp/lista_p.txt ]; then
         for proto in $(cat /tmp/lista_p.txt); do
-            echo -e "\e[1;32m    ❯ Sincronizando: \e[37m$proto"
-            # Descarga limpia directamente del RAW de GitHub
-            wget -q -O "$SCPdir/protocolos/$proto" "${URL_REPO}/$proto"
-            chmod +x "$SCPdir/protocolos/$proto"
-            
-            # PARCHE DE RUTAS INTERNAS (Corrige errores de scripts que apuntan a /root/)
+            download_file "protocolos" "$proto" "$SCPdir/protocolos"
             sed -i 's|/root/|/etc/VPS-MX/|g' "$SCPdir/protocolos/$proto" 2>/dev/null
         done
+    else
+        # Descarga forzada de v2ray si no hay lista
+        download_file "protocolos" "v2ray.sh" "$SCPdir/protocolos"
     fi
 
     # Configuración de accesos y Banner
@@ -95,25 +113,30 @@ install_core_lacasita() {
     ln -sf $SCPdir/menu /usr/bin/vpsmx
     chmod +x $SCPdir/menu /usr/bin/menu
     
-    # Actualización de versión
-    curl -sSL "https://raw.githubusercontent.com/thefather12/ADM-FATHER2/main/Otros/Version" > /etc/versin_script
-    
+    # Guardar IP y Versión
+    curl -s ipinfo.io/ip > $SCPdir/MEUIPvps
+    wget -qO /etc/versin_script "${URL_RAW}/Otros/Version"
+
     msg -bar
-    echo -e "\e[1;92m       >> REPOS REPARADOS Y ACTUALIZADOS <<" 
-    echo -e "\e[1;37m        ACCESO AL PANEL: \e[1;41m  menu  \e[0m"
+    echo -e "\e[1;92m INSTALACIÓN COMPLETADA CON ÉXITO"
+    echo -e "\e[1;37m COMANDO PRINCIPAL: \e[1;42m menu \e[0m"
     msg -bar
 }
 
-# 5. INICIO DEL PROCESO
-msg -bar
-echo -e "   \e[1;97m\e[1;100m =====>>►►  SCRIPT ADM-FATHER (2025X)  ◄◄<<===== \033[0m"
-msg -bar
-apt-get update && apt-get upgrade -y
-dependencias
-install_core_lacasita
+# ==========================================================
+# 7. EJECUCIÓN DEL SCRIPT (FLUJO FINAL)
+# ==========================================================
+# Actualizar lista de paquetes
+apt-get update
 
-# Reinicio de cortesía para aplicar cambios de kernel/red
+# Llamar a la instalación de dependencias
+dependencias
+
+# Llamar a la descarga e instalación de archivos
+install_core
+
+# Reinicio opcional
 REBOOT_TIMEOUT=5
-echo -e "\e[1;37m Reiniciando sistema en $REBOOT_TIMEOUT seg para finalizar...\e[0m"
+echo -e "\e[1;37m El sistema se reiniciará en $REBOOT_TIMEOUT segundos..."
 sleep 5
 reboot
