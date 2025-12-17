@@ -236,12 +236,15 @@ addusr_auto() {
     MAILITO=$(cat /dev/urandom | tr -dc '[:alnum:]' | head -c 10)
     UUID=$(cat /proc/sys/kernel/random/uuid)
     
-    # Lógica para agregar UUID al config.json
+    # Lógica para agregar UUID al config.json (INSERCIÓN CORREGIDA)
+    # Insertamos el nuevo bloque en la línea 13 (al inicio de la lista de clientes)
     sed -i '13i\           \{' /etc/v2ray/config.json
     sed -i '14i\           \"alterId": 0,' /etc/v2ray/config.json
     sed -i '15i\           \"id": "'$UUID'",' /etc/v2ray/config.json
     sed -i '16i\           \"email": "'$MAILITO'@gmail.com"' /etc/v2ray/config.json
-    sed -i '17i\           \},' /etc/v2ray/config.json
+    sed -i '17i\           \}' /etc/v2ray/config.json  # SOLO la llave de cierre, sin coma
+    # Insertamos la coma de separación antes del siguiente cliente (que ahora está en línea 18)
+    sed -i '18i\           ,' /etc/v2ray/config.json 
 
     echo ""
     while true; do
@@ -323,12 +326,14 @@ addusr_manual() {
         break
     done
 
-    # Lógica para agregar UUID al config.json
+    # Lógica para agregar UUID al config.json (INSERCIÓN CORREGIDA)
     sed -i '13i\           \{' /etc/v2ray/config.json
     sed -i '14i\           \"alterId": 0,' /etc/v2ray/config.json
     sed -i '15i\           \"id": "'$UUID'",' /etc/v2ray/config.json
     sed -i '16i\           \"email": "'$MAILITO'@gmail.com"' /etc/v2ray/config.json
-    sed -i '17i\           \},' /etc/v2ray/config.json
+    sed -i '17i\           \}' /etc/v2ray/config.json # SOLO la llave de cierre, sin coma
+    # Insertamos la coma de separación antes del siguiente cliente (que ahora está en línea 18)
+    sed -i '18i\           ,' /etc/v2ray/config.json 
 
     echo ""
     while true; do
