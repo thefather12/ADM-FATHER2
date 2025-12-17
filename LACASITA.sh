@@ -1,82 +1,59 @@
 #!/bin/bash
 # ==========================================================
-# INSTALADOR DE RESCATE - ADM-FATHER 2025X
+# INSTALADOR REPARADOR - ADM-FATHER 2025X
 # ==========================================================
 
 clear
-if [ `whoami` != 'root' ]; then
-     echo -e "\e[1;31mERROR: DEBES SER ROOT\e[0m"
-     exit 1
-fi
-
-# CONFIGURACIÓN (Verifica que estas rutas existan en tu GitHub)
+SCPdir="/etc/VPS-MX"
 USER_GIT="thefather12"
 REPO_GIT="ADM-FATHER2"
 BRANCH="main"
 URL_RAW="https://raw.githubusercontent.com/${USER_GIT}/${REPO_GIT}/${BRANCH}"
-SCPdir="/etc/VPS-MX"
 
-msg () {
-  echo -e "\e[1;33m$1\e[0m"
+# Forzar la creación de la carpeta de seguridad para el menú
+mkdir -p /usr/local/include/snaps
+mkdir -p $SCPdir/protocolos
+
+msg_inst() {
+  echo -e "\e[1;32m[INSTALADOR]\e[0m $1"
 }
 
-# FUNCIÓN DE DESCARGA MEJORADA
-download_file() {
-    local folder=$1 # Carpeta en GitHub (ej. VPS-MX o protocolos)
-    local file=$2   # Nombre del archivo (ej. menu o v2ray.sh)
-    local dest=$3   # Carpeta destino en el VPS
+# 1. Reparar comandos si faltan
+if ! command -v ls &> /dev/null; then
+    apt-get update && apt-get install coreutils wget curl -y
+fi
 
-    # Intentamos descargar
-    wget -q -O "${dest}/${file}" "${URL_RAW}/${folder}/${file}"
-    
-    if [ -s "${dest}/${file}" ]; then
-        chmod +x "${dest}/${file}"
-        echo -e "\e[1;32m [OK] \e[37m${file} instalado en ${dest}"
-    else
-        echo -e "\e[1;31m [FALLO] \e[37m${file} no se encontró en GitHub o está vacío."
-        rm -f "${dest}/${file}"
-    fi
-}
+# 2. Descarga Directa con verificación de errores
+# Intentamos bajar el menú. Si falla en VPS-MX, busca en la raíz
+msg_inst "Descargando Menú Principal..."
+wget -q -O $SCPdir/menu "${URL_RAW}/VPS-MX/menu" || wget -q -O $SCPdir/menu "${URL_RAW}/menu"
 
-install_core() {
-    msg "Preparando directorios..."
-    rm -rf $SCPdir
-    mkdir -p $SCPdir/protocolos
-    mkdir -p $SCPdir/herramientas
-    mkdir -p /usr/local/include/snaps # Requisito de tu menú
+if [ ! -s "$SCPdir/menu" ]; then
+    echo -e "\e[1;31mERROR: No se pudo descargar el archivo 'menu'.\e[0m"
+    echo -e "Verifica que el archivo esté en: ${URL_RAW}/VPS-MX/menu"
+    exit 1
+fi
 
-    msg "Descargando Menú y Protocolos..."
-    
-    # IMPORTANTE: Aquí indico que el archivo 'menu' está dentro de la carpeta 'VPS-MX' en tu GitHub
-    download_file "VPS-MX" "menu" "$SCPdir"
-    
-    # Descargar protocolos usando la lista
-    wget -qO /tmp/lista_p.txt "${URL_RAW}/protocolos/lista_protocolos.txt"
-    if [ -f /tmp/lista_p.txt ]; then
-        for proto in $(cat /tmp/lista_p.txt); do
-            download_file "protocolos" "$proto" "$SCPdir/protocolos"
-        done
-    fi
+# 3. Descarga de Protocolos
+msg_inst "Descargando Protocolos..."
+wget -qO /tmp/lista_p.txt "${URL_RAW}/protocolos/lista_protocolos.txt"
 
-    # --- REPARACIÓN DEL ACCESO DIRECTO ---
-    msg "Configurando comando 'menu'..."
-    rm -f /usr/bin/menu
-    rm -f /usr/bin/vpsmx
-    
-    # Creamos el enlace simbólico apuntando a la ruta real
-    if [ -f "$SCPdir/menu" ]; then
-        ln -sf $SCPdir/menu /usr/bin/menu
-        ln -sf $SCPdir/menu /usr/bin/vpsmx
-        chmod +x /usr/bin/menu
-        echo -e "\e[1;32m Comando 'menu' vinculado correctamente.\e[0m"
-    else
-        echo -e "\e[1;31m ERROR CRÍTICO: El archivo 'menu' no existe en $SCPdir\e[0m"
-    fi
-}
+if [ -f /tmp/lista_p.txt ]; then
+    for proto in $(cat /tmp/lista_p.txt); do
+        wget -q -O "$SCPdir/protocolos/$proto" "${URL_RAW}/protocolos/$proto"
+        chmod +x "$SCPdir/protocolos/$proto"
+        echo -e "  \e[1;32m✔\e[0m $proto"
+    done
+else
+    # Si no hay lista, forzamos v2ray
+    wget -q -O "$SCPdir/protocolos/v2ray.sh" "${URL_RAW}/protocolos/v2ray.sh"
+    chmod +x "$SCPdir/protocolos/v2ray.sh"
+fi
 
-# EJECUCIÓN
-apt-get update && apt-get install wget curl -y &>/dev/null
-install_core
+# 4. Crear el comando 'menu' de forma absoluta
+chmod +x $SCPdir/menu
+ln -sf $SCPdir/menu /usr/bin/menu
+ln -sf $SCPdir/menu /usr/bin/vpsmx
 
-msg "Instalación finalizada. Prueba escribiendo: menu"
-
+msg_inst "INSTALACIÓN FINALIZADA"
+echo -e "Escribe: \e[1;42m menu \e[0m"
